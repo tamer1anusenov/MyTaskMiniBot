@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tasks</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <div class="flex flex-col min-h-screen bg-background font-sans text-foreground">
+      <header
+        class="sticky top-0 z-10 bg-background/95 backdrop-blur-md pt-3 pb-2 flex flex-col gap-3 border-b border-border/30"
+      >
+        <div class="px-4">
+          <div class="flex items-center bg-secondary rounded-xl px-3 py-2">
+            <iconify-icon
+              icon="solar:magnifer-linear"
+              class="text-muted-foreground"
+              width="20"
+              height="20"
+            ></iconify-icon
+            ><input
+              type="text"
+              id="search-input"
+              placeholder="Search tasks..."
+              class="flex-1 bg-transparent border-none outline-none text-[17px] ml-2 placeholder:text-muted-foreground"
+            />
+          </div>
+        </div>
+        <div class="flex overflow-x-auto no-scrollbar px-4 gap-2 pb-1">
+          <button
+            id="filter-all"
+            class="whitespace-nowrap rounded-[12px] bg-primary text-primary-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn active"
+          >
+            All</button
+          ><button
+            id="filter-work"
+            class="whitespace-nowrap rounded-[12px] bg-secondary text-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn"
+          >
+            #work</button
+          ><button
+            id="filter-personal"
+            class="whitespace-nowrap rounded-[12px] bg-secondary text-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn"
+          >
+            #personal</button
+          ><button
+            id="filter-grocery"
+            class="whitespace-nowrap rounded-[12px] bg-secondary text-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn"
+          >
+            #grocery</button
+          ><button
+            id="filter-urgent"
+            class="whitespace-nowrap rounded-[12px] bg-secondary text-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn"
+          >
+            #urgent
+          </button>
+        </div>
+      </header>
+      <main class="flex-1 overflow-y-auto pb-24">
+        <div id="tasks-container" class="mt-4">
+          <!-- Tasks will be injected here by JavaScript -->
+        </div>
+      </main>
+      <button
+        id="add-task-btn"
+        class="fixed bottom-6 right-4 size-[56px] bg-primary text-primary-foreground rounded-[16px] flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+        aria-label="Add new task"
+      >
+        <iconify-icon icon="material-symbols:add-rounded" class="text-[32px]"></iconify-icon>
+      </button>
+    </div>
+    <script src="/static/js/telegram-webapp.js" defer></script>
+    <script src="/static/js/main.js" defer></script>
+  </body>
+</html>

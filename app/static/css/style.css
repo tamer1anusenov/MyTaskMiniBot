@@ -1,0 +1,153 @@
+/* Base styles for better performance */
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
+  --primary: #3390ec;
+  --primary-foreground: #ffffff;
+  --secondary: #efeff3;
+  --secondary-foreground: #000000;
+  --muted: #f2f2f7;
+  --muted-foreground: #8e8e93;
+  --accent: #e5f1fa;
+  --accent-foreground: #3390ec;
+  --destructive: #ff3b30;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --border: #c8c7cc;
+  --input: #ffffff;
+  --ring: #3390ec;
+  --chart-1: #3390ec;
+  --chart-2: #34c759;
+  --chart-3: #ff9500;
+  --chart-4: #ff3b30;
+  --chart-5: #8e8e93;
+
+  --font-sans: "Inter";
+  --font-heading: "Inter";
+  --font-serif: "Playfair Display";
+  --font-mono: "JetBrains Mono";
+
+  --radius: 0.75rem;
+}
+
+/* Reset and base styles for better performance */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Improve scrolling performance */
+body {
+  -webkit-overflow-scrolling: touch;
+  overflow-anchor: none;
+}
+
+/* Prevent text selection during drag operations */
+.user-select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Optimize tap targets on mobile */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Reduce layout thrashing */
+.will-change-transform {
+  will-change: transform;
+}
+
+/* Smooth transitions for better UX */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Hardware accelerated animations */
+.accelerate {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Dark mode support for Telegram */
+[data-theme="dark"] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #0a84ff;
+  --primary-foreground: #ffffff;
+  --secondary: #2c2c2e;
+  --secondary-foreground: #ffffff;
+  --muted: #1c1c1e;
+  --muted-foreground: #636366;
+  --accent: #0a2463;
+  --accent-foreground: #0a84ff;
+  --destructive: #ff453a;
+  --card: #000000;
+  --card-foreground: #ffffff;
+  --popover: #000000;
+  --popover-foreground: #ffffff;
+  --border: #38383a;
+  --input: #000000;
+  --ring: #0a84ff;
+}
+
+/* Utility classes for better performance */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-start {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* Hide scrollbars but keep functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Optimize icon display */
+.iconify-icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Prevent icon layout shift */
+.iconify-icon:not([width]):not([height]) {
+  width: 1em;
+  height: 1em;
+}
+
+/* Focus improvements for accessibility */
+.focus-visible:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Disable text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
