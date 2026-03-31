@@ -1,91 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tasks</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css" />
-  </head>
-  <body>
-    <div class="flex flex-col min-h-screen bg-background font-sans text-foreground">
-      <header
-        class="sticky top-0 z-10 bg-background/95 backdrop-blur-md pt-3 pb-2 flex flex-col gap-3 border-b border-border/30"
-      >
-        <div class="px-4">
-          <div class="flex items-center bg-secondary rounded-xl px-3 py-2">
-            <iconify-icon
-              icon="solar:magnifer-linear"
-              class="text-muted-foreground"
-              width="20"
-              height="20"
-            ></iconify-icon
-            ><input
-              type="text"
-              id="search-input"
-              placeholder="Search tasks..."
-              class="flex-1 bg-transparent border-none outline-none text-[17px] ml-2 placeholder:text-muted-foreground"
-            />
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tasks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  
+  <style type="text/tailwindcss">
+    @theme inline {
+      --color-background: #0a0a0a;
+      --color-foreground: #00ff9d;
+      --color-primary: #00ff9d;
+      --color-muted: #1a1a1a;
+      --color-border: #004422;
+      --color-destructive: #ff4444;
+    }
+    :root {
+      --background: #0a0a0a;
+      --foreground: #00ff9d;
+      --primary: #00ff9d;
+    }
+    
+    body {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .terminal-glow {
+      text-shadow: 0 0 8px rgb(0 255 157 / 0.5);
+    }
+
+    .task-item {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .task-item:hover {
+      background-color: #111;
+      transform: translateX(4px);
+    }
+
+    .scanline {
+      position: relative;
+    }
+    .scanline::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        to bottom,
+        transparent 50%,
+        rgba(0, 255, 157, 0.03) 50%
+      );
+      background-size: 100% 4px;
+      pointer-events: none;
+      animation: scan 4s linear infinite;
+    }
+
+    @keyframes scan {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 400px; }
+    }
+  </style>
+</head>
+<body class="bg-background text-foreground min-h-screen flex flex-col font-mono lowercase">
+  <div class="flex-1 flex flex-col scanline">
+    <!-- Header -->
+    <header class="border-b border-primary/30 bg-black/80 backdrop-blur-md sticky top-0 z-20">
+      <div class="px-4 py-3 flex items-center gap-3 border-b border-primary/20">
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-primary font-bold">root@tasks</span>
+          <span class="text-muted-foreground">:</span>
+          <span class="text-primary">~</span>
+          <span class="text-muted-foreground">$</span>
         </div>
-        <div class="flex overflow-x-auto no-scrollbar px-4 gap-2 pb-1">
-          <button
-            id="filter-all"
-            class="whitespace-nowrap rounded-[12px] bg-primary text-primary-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn active"
-          >
-            All</button
-          ><button
-            id="filter-work"
-            class="whitespace-nowrap rounded-[12px] bg-secondary text-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn"
-          >
-            #work</button
-          ><button
-            id="filter-personal"
-            class="whitespace-nowrap rounded-[12px] bg-secondary text-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn"
-          >
-            #personal</button
-          ><button
-            id="filter-grocery"
-            class="whitespace-nowrap rounded-[12px] bg-secondary text-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn"
-          >
-            #grocery</button
-          ><button
-            id="filter-urgent"
-            class="whitespace-nowrap rounded-[12px] bg-secondary text-foreground px-3 py-1.5 text-[15px] font-medium transition-colors filter-btn"
-          >
-            #urgent
-          </button>
+        
+        <div class="flex-1 bg-zinc-950 border border-primary/30 rounded px-3 py-1.5 text-sm flex items-center">
+          <input 
+            id="search-input"
+            type="text" 
+            placeholder="grep tasks or type command..."
+            class="flex-1 bg-transparent outline-none text-sm placeholder:text-zinc-500"
+          />
+          <span class="animate-pulse text-primary">_</span>
         </div>
-      </header>
-      <main class="flex-1 overflow-y-auto pb-24">
-        <div id="tasks-container" class="mt-4">
-          <!-- Tasks will be injected here by JavaScript -->
+      </div>
+
+      <!-- Filters -->
+      <div class="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar text-sm border-b border-primary/20">
+        <button id="filter-all" class="category-btn active px-4 py-1 border border-primary/40 hover:border-primary text-primary rounded">ls --all</button>
+        <button id="filter-work" class="category-btn px-4 py-1 border border-transparent hover:border-primary/50 text-muted-foreground hover:text-primary">#work</button>
+        <button id="filter-personal" class="category-btn px-4 py-1 border border-transparent hover:border-primary/50 text-muted-foreground hover:text-primary">#personal</button>
+        <button id="filter-bills" class="category-btn px-4 py-1 border border-transparent hover:border-primary/50 text-muted-foreground hover:text-primary">#bills</button>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4 space-y-8 pb-24" id="task-list">
+      <!-- Populated by JS -->
+    </main>
+  </div>
+
+  <!-- Floating Add Button -->
+  <button id="add-task-btn" 
+    class="fixed bottom-6 right-6 h-14 px-6 bg-primary text-black font-bold flex items-center gap-2 hover:bg-emerald-400 transition-all active:scale-95 border-2 border-black shadow-xl">
+    <span class="text-xl">+</span>
+    <span>./new_task</span>
+  </button>
+
+  <!-- New Task Input -->
+  <div id="new-task-bar" class="hidden fixed bottom-0 left-0 right-0 bg-black border-t-2 border-primary p-4">
+    <div class="flex flex-col gap-4 max-w-2xl mx-auto">
+      <div class="flex items-center gap-3">
+        <span class="text-primary whitespace-nowrap">root@tasks:~#</span>
+        <input 
+          id="new-task-input"
+          type="text" 
+          class="flex-1 bg-transparent outline-none text-lg"
+          placeholder="write task description..."
+        />
+      </div>
+      
+      <!-- Deadline and Folder -->
+      <div class="flex gap-4 text-sm">
+        <div class="flex items-center gap-2">
+          <span class="text-primary">deadline:</span>
+          <input 
+            id="deadline-input"
+            type="datetime-local" 
+            class="bg-zinc-950 border border-primary/30 rounded px-2 py-1 text-sm"
+          />
         </div>
-      </main>
-      <button
-        id="add-task-btn"
-        class="fixed bottom-6 right-4 size-[56px] bg-primary text-primary-foreground rounded-[16px] flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-        aria-label="Add new task"
-      >
-        <iconify-icon icon="material-symbols:add-rounded" class="text-[32px]"></iconify-icon>
-      </button>
+        <div class="flex items-center gap-2">
+          <span class="text-primary">folder:</span>
+          <select id="folder-select" class="bg-zinc-950 border border-primary/30 rounded px-2 py-1 text-sm">
+            <option value="daily">daily</option>
+            <option value="work">work</option>
+            <option value="personal">personal</option>
+            <option value="bills">bills</option>
+          </select>
+          <input 
+            id="new-folder-input"
+            type="text" 
+            class="bg-zinc-950 border border-primary/30 rounded px-2 py-1 text-sm w-20"
+            placeholder="new folder"
+          />
+        </div>
+      </div>
+      
+      <div class="flex justify-end gap-2">
+        <button id="cancel-btn" class="px-4 py-2 text-muted-foreground">esc</button>
+        <button id="execute-btn" class="px-6 py-2 bg-primary text-black font-bold">execute</button>
+      </div>
     </div>
-    <script src="/static/js/telegram-webapp.js" defer></script>
-    <script src="/static/js/main.js" defer></script>
-  </body>
+  </div>
+
+  <script src="/static/js/telegram-webapp.js" defer></script>
+  <script src="/static/js/main.js" defer></script>
+</body>
 </html>

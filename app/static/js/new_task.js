@@ -240,20 +240,22 @@
     
     try {
       const newTask = {
-        id: Date.now(), // Simple ID generation - in real app use UUID or DB ID
-        text: state.taskText.trim(),
-        completed: false,
-        priority: state.priority,
-        tags: [...state.tags],
-        date: state.dateTime ? state.dateTime.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        time: state.dateTime ? formatTimeForDisplay(state.dateTime) : 'Today'
+        title: state.taskText.trim(),
+        description: '', // For now, no description
+        completed: false
       };
       
-      // Save to localStorage (in real app, this would be an API call)
-      const storedTasks = localStorage.getItem('tasks');
-      const tasks = storedTasks ? JSON.parse(storedTasks) : [];
-      tasks.push(newTask);
-      localStorage.setItem('tasks', JSON.stringify(tasks));
+      const response = await fetch('/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newTask),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save task');
+      }
       
       // Provide feedback
       if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
@@ -264,7 +266,7 @@
       if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.close();
       } else {
-        window.location.href = '/';
+        window.location.href = '/tasks-page';
       }
     } catch (error) {
       console.error('Failed to save task:', error);
@@ -300,7 +302,7 @@
     if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.close();
     } else {
-      window.location.href = '/';
+      window.location.href = '/tasks-page';
     }
   }
 
