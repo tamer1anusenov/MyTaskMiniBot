@@ -11,18 +11,106 @@ document.addEventListener('DOMContentLoaded', function() {
     const folderSelect = document.getElementById('folder-select');
     const newFolderInput = document.getElementById('new-folder-input');
     const searchInput = document.getElementById('search-input');
-    
-    // Filter buttons
-    const filterButtons = {
-        all: document.getElementById('filter-all'),
-        work: document.getElementById('filter-work'),
-        personal: document.getElementById('filter-personal'),
-        bills: document.getElementById('filter-bills')
-    };
-    
+    const filterBar = document.getElementById('filter-bar');
+    const filterButtons = {};
+    const folderFilterKeys = new Set();
+    const manualFolders = new Set();
     let currentFilter = 'all';
     let searchQuery = '';
     let tasks = [];
+    let latestFolderSet = new Set();
+    const filterAllButton = document.getElementById('filter-all');
+    const filterTomorrowButton = document.getElementById('filter-tomorrow');
+    // Folder selection handler
+    folderSelect.addEventListener('change', () => {
+        if (folderSelect.value) {
+            newFolderInput.value = ''; // Clear new folder input if existing folder selected
+        }
+    });
+
+    function escapeHtml(value) {
+        return value.replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        })[char]);
+    }
+
+    function registerFilterButton(key, button) {
+        if (!button) return;
+        filterButtons[key] = button;
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            setActiveFilter(key);
+        });
+    }
+
+    function updateActiveFilterStyles() {
+        Object.entries(filterButtons).forEach(([key, button]) => {
+            button.classList.remove('active', 'border-primary', 'text-primary');
+            button.classList.add('border-transparent', 'text-muted-foreground');
+            if (key === currentFilter) {
+                button.classList.add('active', 'border-primary', 'text-primary');
+                button.classList.remove('border-transparent', 'text-muted-foreground');
+            }
+        });
+    }
+
+    function setActiveFilter(key) {
+        if (!filterButtons[key]) return;
+        currentFilter = key;
+        updateActiveFilterStyles();
+        renderTasks();
+    }
+
+    function updateFolderSelect(folders) {
+        const previousValue = folderSelect.value;
+        const sortedFolders = folders.slice().sort((a, b) => a.localeCompare(b));
+        folderSelect.innerHTML = '<option value="">select folder...</option>' + sortedFolders
+            .map(folder => `<option value="${escapeHtml(folder)}">${escapeHtml(folder)}</option>`)
+            .join('');
+        if (previousValue && sortedFolders.includes(previousValue)) {
+            folderSelect.value = previousValue;
+        }
+    }
+
+    function syncFolderFilters(folderSet) {
+        Array.from(folderFilterKeys).forEach(folderName => {
+            if (!folderSet.has(folderName)) {
+                if (filterButtons[folderName]) {
+                    filterButtons[folderName].remove();
+                    delete filterButtons[folderName];
+                }
+                folderFilterKeys.delete(folderName);
+            }
+        });
+
+        folderSet.forEach(folderName => {
+            if (!folderFilterKeys.has(folderName)) {
+                addFolderFilterButton(folderName);
+            }
+        });
+    }
+
+    function syncFoldersFromTasks() {
+        const folderSet = new Set(manualFolders);
+        tasks.forEach(task => {
+            if (task.tag) folderSet.add(task.tag);
+        });
+        latestFolderSet = folderSet;
+        updateFolderSelect(Array.from(folderSet));
+        syncFolderFilters(folderSet);
+    }
+
+    function refreshViewAfterTaskUpdate() {
+        if (!['all', 'tomorrow'].includes(currentFilter) && !latestFolderSet.has(currentFilter)) {
+            currentFilter = 'all';
+        }
+        updateActiveFilterStyles();
+        renderTasks();
+    }
 
     // Fetch tasks from backend
     async function fetchTasks() {
@@ -44,7 +132,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 deadline: task.deadline
             }));
 
-            renderTasks();
+            syncFoldersFromTasks();
+            refreshViewAfterTaskUpdate();
         } catch (error) {
             console.error('Error fetching tasks:', error);
             taskList.innerHTML = '<p class="text-center text-muted-foreground py-8">Error loading tasks. Please try again later.</p>';
@@ -85,6 +174,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Render tasks based on current filter and search
     function renderTasks(filteredTasks = tasks) {
+        // Handle special tomorrow tab
+        if (currentFilter === 'tomorrow') {
+            renderTomorrowCalculator();
+            return;
+        }
+
         // Filter by search
         if (searchQuery) {
             filteredTasks = filteredTasks.filter(task => 
@@ -120,9 +215,169 @@ document.addEventListener('DOMContentLoaded', function() {
             done.forEach(task => taskList.innerHTML += createTaskHTML(task));
         }
 
-        if (filteredTasks.length === 0) {
-            taskList.innerHTML = '<p class="text-center text-muted-foreground py-8">No tasks found.</p>';
+    }
+
+    function renderTomorrowCalculator() {
+        taskList.innerHTML = `
+            <div class="space-y-6">
+                <h2 class="text-primary text-xs font-bold tracking-widest">/usr/bin/tomorrow</h2>
+                
+                <div class="bg-zinc-950 border border-primary/30 rounded p-4">
+                    <h3 class="text-primary text-sm font-bold mb-3">Time Calculator</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <input 
+                                id="time-interval-input"
+                                type="text" 
+                                class="flex-1 bg-transparent border border-primary/30 rounded px-3 py-2 text-sm"
+                                placeholder="12:45-13:50"
+                            />
+                            <button id="add-interval-btn" class="px-4 py-2 bg-primary text-black font-bold rounded">Add</button>
+                        </div>
+                        
+                        <div id="intervals-list" class="space-y-2 text-sm"></div>
+                        
+                        <div class="border-t border-primary/20 pt-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-primary font-bold">Total Time:</span>
+                                <span id="total-time" class="text-primary font-mono">0 minutes</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        loadTimeIntervals();
+        
+        document.getElementById('add-interval-btn').addEventListener('click', addTimeInterval);
+        document.getElementById('time-interval-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addTimeInterval();
+        });
+    }
+
+    function addTimeInterval() {
+        const input = document.getElementById('time-interval-input');
+        let rawValue = input.value.trim();
+        if (!rawValue) return;
+
+        let associatedTaskId = null;
+        const taskMatch = rawValue.match(/^(.*)\s+@(\d+)$/);
+        if (taskMatch) {
+            rawValue = taskMatch[1].trim();
+            associatedTaskId = Number(taskMatch[2]);
         }
+
+        const match = rawValue.match(/^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/);
+        if (!match) {
+            alert('Invalid format. Use HH:MM-HH:MM (e.g., 12:45-13:50)');
+            return;
+        }
+
+        const [, startH, startM, endH, endM] = match.map(Number);
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+
+        if (endMinutes <= startMinutes) {
+            alert('End time must be after start time');
+            return;
+        }
+
+        const duration = endMinutes - startMinutes;
+        const intervals = getTimeIntervals();
+        intervals.push({
+            interval: rawValue,
+            duration,
+            date: new Date().toISOString().split('T')[0],
+            taskId: associatedTaskId
+        });
+        saveTimeIntervals(intervals);
+
+        input.value = '';
+        loadTimeIntervals();
+    }
+
+    function loadTimeIntervals() {
+        const intervals = getTimeIntervals();
+        const list = document.getElementById('intervals-list');
+        const total = intervals.reduce((sum, item) => sum + item.duration, 0);
+
+        list.innerHTML = intervals.map((item, index) => {
+            const label = item.taskId ? `${item.interval} (task #${item.taskId})` : item.interval;
+            return `
+            <div class="flex justify-between items-center bg-zinc-900 px-3 py-2 rounded">
+                <span>${label}</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-primary text-xs">${formatDuration(item.duration)}</span>
+                    <button onclick="removeTimeInterval(${index})" class="text-destructive hover:text-red-400">×</button>
+                </div>
+            </div>
+        `;
+        }).join('');
+
+        document.getElementById('total-time').textContent = formatDuration(total);
+    }
+
+    function removeTimeInterval(index) {
+        const intervals = getTimeIntervals();
+        if (index < 0 || index >= intervals.length) return;
+        const [removed] = intervals.splice(index, 1);
+        saveTimeIntervals(intervals);
+        loadTimeIntervals();
+    }
+
+    function removeIntervalsForTask(taskId) {
+        if (!taskId) return;
+        const intervals = getTimeIntervals();
+        const filtered = intervals.filter(item => item.taskId !== taskId);
+        if (filtered.length === intervals.length) return;
+        saveTimeIntervals(filtered);
+        loadTimeIntervals();
+    }
+
+    window.removeTimeInterval = removeTimeInterval;
+
+    function ensureWeeklyReset() {
+        const today = new Date();
+        const isoDate = today.toISOString().split('T')[0];
+        const lastReset = localStorage.getItem('lastTimeReset');
+        if (today.getDay() === 0 && lastReset !== isoDate) {
+            localStorage.setItem('timeIntervals', JSON.stringify([]));
+            localStorage.setItem('lastTimeReset', isoDate);
+            return true;
+        }
+        return false;
+    }
+
+    function getTimeIntervals() {
+        ensureWeeklyReset();
+        const stored = localStorage.getItem('timeIntervals');
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveTimeIntervals(intervals) {
+        localStorage.setItem('timeIntervals', JSON.stringify(intervals));
+    }
+
+    function formatDuration(minutes) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        const hourLabel = hours === 1 ? 'hour' : 'hours';
+        const minuteLabel = mins === 1 ? 'minute' : 'minutes';
+        if (hours && mins) return `${hours} ${hourLabel} ${mins} ${minuteLabel}`;
+        if (hours) return `${hours} ${hourLabel}`;
+        return `${mins} ${minuteLabel}`;
+    }
+
+    function addFolderFilterButton(folderName) {
+        if (!filterBar || filterButtons[folderName]) return;
+        const button = document.createElement('button');
+        button.className = 'category-btn px-4 py-1 border border-transparent hover:border-primary/50 text-muted-foreground hover:text-primary';
+        button.textContent = `#${folderName}`;
+        filterBar.appendChild(button);
+        registerFilterButton(folderName, button);
+        folderFilterKeys.add(folderName);
     }
 
     function createTaskHTML(task) {
@@ -134,9 +389,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
                         <span class="${task.done ? 'line-through text-muted-foreground' : 'text-[17px]'}">${task.text}</span>
-                        ${task.priority === 'critical' ? 
-                            `<span class="text-xs bg-destructive text-black px-2 py-0.5 font-bold">CRITICAL</span>` : 
-                            `<span class="text-xs border border-primary/40 px-2 py-0.5">${task.priority}</span>`}
+                        <div class="flex items-center gap-2">
+                            ${task.priority === 'critical' ? 
+                                `<span class="text-xs bg-destructive text-black px-2 py-0.5 font-bold">CRITICAL</span>` : 
+                                `<span class="text-xs border border-primary/40 px-2 py-0.5">${task.priority}</span>`}
+                            <button type="button" onclick="event.stopPropagation(); deleteTask(${task.id});" class="text-[11px] uppercase tracking-widest text-destructive border border-destructive px-2 py-0.5 rounded hover:bg-destructive/20">rm</button>
+                        </div>
                     </div>
                     <div class="flex items-center gap-3 text-xs mt-1">
                         <span class="${task.overdue ? 'text-destructive' : 'text-primary'}">${task.time}</span>
@@ -177,6 +435,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    async function deleteTask(id) {
+        try {
+            const response = await fetch(`/tasks/${id}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Failed to delete task');
+            removeIntervalsForTask(id);
+            fetchTasks();
+        } catch (error) {
+            console.error('Error deleting task:', error);
+            alert('Failed to delete task. Please try again.');
+        }
+    }
+
+    window.deleteTask = deleteTask;
+
     // Add new task
     function startNewTask() {
         newTaskBar.classList.remove('hidden');
@@ -187,19 +459,32 @@ document.addEventListener('DOMContentLoaded', function() {
         newTaskBar.classList.add('hidden');
         newTaskInput.value = '';
         deadlineInput.value = '';
+        folderSelect.value = '';
         newFolderInput.value = '';
-        folderSelect.value = 'daily';
     }
 
     async function addNewTask() {
         const text = newTaskInput.value.trim();
-        if (!text) return;
+        if (!text) {
+            alert('Please enter a task description');
+            return;
+        }
+        
+        let folder = folderSelect.value || newFolderInput.value.trim();
+        if (!folder) {
+            alert('Please select or create a folder for this task');
+            return;
+        }
+        
+        manualFolders.add(folder);
+        const instantFolders = new Set(latestFolderSet);
+        instantFolders.add(folder);
+        updateFolderSelect(Array.from(instantFolders));
+        if (!folderFilterKeys.has(folder)) {
+            addFolderFilterButton(folder);
+        }
         
         const deadline = deadlineInput.value ? new Date(deadlineInput.value).toISOString() : null;
-        let folder = folderSelect.value;
-        if (newFolderInput.value.trim()) {
-            folder = newFolderInput.value.trim();
-        }
         
         try {
             const response = await fetch('/tasks', {
@@ -241,20 +526,9 @@ document.addEventListener('DOMContentLoaded', function() {
         renderTasks();
     });
 
-    // Filters
-    Object.keys(filterButtons).forEach(key => {
-        filterButtons[key].addEventListener('click', () => {
-            currentFilter = key;
-            Object.values(filterButtons).forEach(btn => {
-                btn.classList.remove('active', 'border-primary', 'text-primary');
-                btn.classList.add('border-transparent', 'text-muted-foreground');
-            });
-            filterButtons[key].classList.add('active', 'border-primary', 'text-primary');
-            filterButtons[key].classList.remove('border-transparent', 'text-muted-foreground');
-            renderTasks();
-        });
-    });
-
-    // Initial load
+    registerFilterButton('all', filterAllButton);
+    registerFilterButton('tomorrow', filterTomorrowButton);
+    setActiveFilter('all');
     fetchTasks();
 });
+

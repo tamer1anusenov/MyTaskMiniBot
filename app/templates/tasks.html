@@ -92,11 +92,9 @@
       </div>
 
       <!-- Filters -->
-      <div class="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar text-sm border-b border-primary/20">
+      <div id="filter-bar" class="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar text-sm border-b border-primary/20">
         <button id="filter-all" class="category-btn active px-4 py-1 border border-primary/40 hover:border-primary text-primary rounded">ls --all</button>
-        <button id="filter-work" class="category-btn px-4 py-1 border border-transparent hover:border-primary/50 text-muted-foreground hover:text-primary">#work</button>
-        <button id="filter-personal" class="category-btn px-4 py-1 border border-transparent hover:border-primary/50 text-muted-foreground hover:text-primary">#personal</button>
-        <button id="filter-bills" class="category-btn px-4 py-1 border border-transparent hover:border-primary/50 text-muted-foreground hover:text-primary">#bills</button>
+        <button id="filter-tomorrow" class="category-btn px-4 py-1 border border-transparent hover:border-primary/50 text-muted-foreground hover:text-primary">tomorrow</button>
       </div>
     </header>
 
@@ -125,31 +123,30 @@
         />
       </div>
       
-      <!-- Deadline and Folder -->
-      <div class="flex gap-4 text-sm">
-        <div class="flex items-center gap-2">
-          <span class="text-primary">deadline:</span>
-          <input 
-            id="deadline-input"
-            type="datetime-local" 
-            class="bg-zinc-950 border border-primary/30 rounded px-2 py-1 text-sm"
-          />
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-primary">folder:</span>
-          <select id="folder-select" class="bg-zinc-950 border border-primary/30 rounded px-2 py-1 text-sm">
-            <option value="daily">daily</option>
-            <option value="work">work</option>
-            <option value="personal">personal</option>
-            <option value="bills">bills</option>
-          </select>
-          <input 
-            id="new-folder-input"
-            type="text" 
-            class="bg-zinc-950 border border-primary/30 rounded px-2 py-1 text-sm w-20"
-            placeholder="new folder"
-          />
-        </div>
+      <!-- Folder Selection -->
+      <div class="flex items-center gap-3">
+        <span class="text-primary">folder:</span>
+        <select id="folder-select" class="bg-zinc-950 border border-primary/30 rounded px-3 py-2 text-sm min-w-[120px]">
+          <option value="">select folder...</option>
+        </select>
+        <span class="text-muted-foreground">or</span>
+        <input 
+          id="new-folder-input"
+          type="text" 
+          class="bg-zinc-950 border border-primary/30 rounded px-3 py-2 text-sm flex-1"
+          placeholder="create new folder..."
+        />
+      </div>
+
+      <!-- Deadline -->
+      <div class="flex items-center gap-3">
+        <span class="text-primary">deadline:</span>
+        <input 
+          id="deadline-input"
+          type="datetime-local" 
+          class="bg-zinc-950 border border-primary/30 rounded px-3 py-2 text-sm"
+        />
+        <span class="text-muted-foreground">(optional)</span>
       </div>
       
       <div class="flex justify-end gap-2">
