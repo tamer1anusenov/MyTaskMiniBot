@@ -18,9 +18,12 @@ app.include_router(tasks.router)
 async def startup_event():
     create_tables()
 
+from fastapi.responses import RedirectResponse
+
+
 @app.get("/")
-async def root():
-    return {"message": "Welcome to the Task Management API"}
+async def root(request: Request):
+    return RedirectResponse(url="/tasks-page")
 
 @app.get("/tasks-page")
 async def tasks_page(request: Request):
