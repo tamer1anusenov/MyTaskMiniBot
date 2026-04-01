@@ -435,6 +435,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    window.toggleTask = toggleTask;
+
     async function deleteTask(id) {
         try {
             const response = await fetch(`/tasks/${id}`, { method: 'DELETE' });
